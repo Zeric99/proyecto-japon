@@ -7,9 +7,12 @@
 :root{font-family:system-ui,-apple-system,sans-serif;color:#24211e;background:#fff}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:flex;flex-direction:column;align-items:center;text-align:center}header{padding:clamp(2.5rem,7vh,5rem) 1rem 0}h1{font-size:clamp(.85rem,2vw,1rem);letter-spacing:.25em;text-transform:uppercase;font-weight:600;margin:0}.sun{width:12px;height:12px;border-radius:50%;background:#bc3b3b;margin:0 auto 1.4rem}main{flex:1;display:grid;place-content:center;padding:1rem 1rem 10vh}.number{font-size:clamp(4rem,18vw,16rem);font-weight:700;line-height:1;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap}.unit{font-size:.34em;letter-spacing:0;margin-left:.1em;color:#bc3b3b}footer{padding:0 1rem 2.5rem;color:#77716a;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
 
 body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:3;will-change:transform;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;padding:0;border:0;background:transparent}.face img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;pointer-events:none;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(max-width:600px){.number{font-size:clamp(5rem,29vw,11rem)}.face{width:clamp(135px,36vw,200px);height:clamp(135px,36vw,200px)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
+
+footer{pointer-events:auto;z-index:4}.chart-toggle,.chart-close{font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:#fff;color:#24211e;border:1px solid #d8d2cc;border-radius:999px;padding:.8rem 1.5rem}.chart-toggle{display:block;margin:1rem auto 0}.chart-toggle:focus-visible,.chart-close:focus-visible{outline:3px solid #bc3b3b;outline-offset:3px}.chart-panel[hidden]{display:none}.chart-panel{position:fixed;inset:0;z-index:10;background:#fff;display:flex;flex-direction:column;text-align:left;padding:clamp(1rem,4vw,3rem);overflow:auto}.chart-header{display:flex;align-items:center;justify-content:space-between;gap:1rem}.chart-header h2{font-size:clamp(1.4rem,5vw,2.5rem);letter-spacing:-.03em;margin:0}.chart-subtitle{color:#77716a;line-height:1.5;font-size:.85rem;letter-spacing:normal;text-transform:none}.chart-wrap{position:relative;flex:1;min-height:260px;max-height:600px;margin:auto 0}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-note{font-size:.75rem;line-height:1.5;color:#77716a;letter-spacing:normal;text-transform:none}
 </style>
 </head>
-<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
+<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
+<section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><button class="chart-close" type="button">Ocultar gráfica</button></div><p class="chart-subtitle"><label for="chart-range">Periodo: </label><select id="chart-range"><option value="60">Última hora</option><option value="1440">Últimas 24 horas</option><option value="10080">Últimos 7 días</option></select> · Porcentaje mostrado</p><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">El historial se guarda en este navegador mientras la página está abierta. Los periodos sin datos quedan vacíos.</p></section>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
 <script>
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70][i],vy:[68,82,-78][i],initialized:false}));
@@ -56,9 +59,53 @@ const upper = Math.min(10000, Math.round(BASE * 100) + 100);
 let value;
 try { value = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
 if (!Number.isInteger(value) || value < lower || value > upper) value = Math.round(BASE * 100);
+// Velas reales de un minuto, compartidas entre los distintos valores base.
+const HISTORY_KEY = 'proyecto-japon-candles-v1';
+let candles = [];
+try { const saved = JSON.parse(localStorage.getItem(HISTORY_KEY)); if (Array.isArray(saved)) candles = saved.filter(c => Number.isFinite(c.t) && [c.o,c.h,c.l,c.c].every(Number.isFinite)).slice(-10080); } catch (_) {}
+const panel = document.getElementById('chart-panel');
+const toggle = document.querySelector('.chart-toggle');
+const closeChart = document.querySelector('.chart-close');
+function recordValue() {
+  const t = Math.floor(Date.now() / 60000) * 60000;
+  let candle = candles[candles.length - 1];
+  if (!candle || candle.t !== t) { candle = {t, o:value, h:value, l:value, c:value}; candles.push(candle); }
+  else { candle.h = Math.max(candle.h, value); candle.l = Math.min(candle.l, value); candle.c = value; }
+  candles = candles.slice(-10080);
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(candles)); } catch (_) {}
+  if (!panel.hidden) drawChart();
+}
+function drawChart() {
+  const canvas = document.getElementById('chart'), rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width*dpr); canvas.height = Math.round(rect.height*dpr);
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const w=rect.width,h=rect.height,left=55,right=15,top=20,bottom=38,plotW=w-left-right,plotH=h-top-bottom;
+  const range = Number(document.getElementById('chart-range').value);
+  const interval = range === 60 ? 1 : range === 1440 ? 15 : 120;
+  const bucket = interval*60000, end = Math.floor(Date.now()/bucket)*bucket, start = end-(Math.ceil(range/interval)-1)*bucket;
+  const grouped = new Map();
+  for (const c of candles) { const t=Math.floor(c.t/bucket)*bucket; if(t<start || t>end) continue; const g=grouped.get(t); if(g){g.h=Math.max(g.h,c.h);g.l=Math.min(g.l,c.l);g.c=c.c}else grouped.set(t,{...c,t}); }
+  const visible=[...grouped.values()];
+  if (!visible.length) return;
+  let min=Math.min(...visible.map(c=>c.l)),max=Math.max(...visible.map(c=>c.h));
+  const pad=Math.max(3,(max-min)*.15); min-=pad;max+=pad;
+  const y=v=>top+(max-v)/(max-min)*plotH;
+  ctx.font='11px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';
+  for(let i=0;i<=4;i++){let v=max-(max-min)*i/4,yy=y(v);ctx.strokeStyle='#eeeae6';ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(w-right,yy);ctx.stroke();ctx.fillStyle='#77716a';ctx.fillText((v/100).toFixed(2).replace('.',',')+' %',left-6,yy)}
+  const slot=plotW/Math.ceil(range/interval),bodyWidth=Math.max(2,Math.min(12,slot*.65));
+  for(const c of visible){const x=left+((c.t-start)/bucket+.5)*slot; const color=c.c>=c.o?'#268567':'#c34747';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();const a=y(c.o),b=y(c.c);ctx.fillRect(x-bodyWidth/2,Math.min(a,b),bodyWidth,Math.max(1,Math.abs(a-b)))}
+  ctx.fillStyle='#77716a';ctx.textBaseline='top';ctx.textAlign='left';ctx.fillText(new Date(start).toLocaleString('es-ES',range===60?{hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),left,h-bottom+10);ctx.textAlign='right';ctx.fillText(new Date(end).toLocaleString('es-ES',range===60?{hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),w-right,h-bottom+10);
+}
+toggle.addEventListener('click',()=>{panel.hidden=false;toggle.setAttribute('aria-expanded','true');drawChart();closeChart.focus()});
+closeChart.addEventListener('click',()=>{panel.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus()});
+document.getElementById('chart-range').addEventListener('change',drawChart);
+window.addEventListener('resize',()=>{if(!panel.hidden)drawChart()});
 function showValue() {
   document.getElementById('value').textContent = (value / 100).toFixed(2).replace('.', ',');
   try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (_) {}
+  recordValue();
 }
 function step() {
   const r = Math.random();
