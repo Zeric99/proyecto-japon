@@ -209,7 +209,7 @@ faces.forEach(f => {
       const angle=Math.atan2(dy,dx);
       if(d.angle!==null){let delta=angle-d.angle;while(delta>Math.PI)delta-=2*Math.PI;while(delta<-Math.PI)delta+=2*Math.PI;d.turn+=delta}
       d.angle=angle;d.lastMove=now;
-      if(!d.dizzyTriggered && now-d.turnStart>=5000 && Math.abs(d.turn)>=Math.PI*2){
+      if(!d.dizzyTriggered && now-d.turnStart>=2000 && Math.abs(d.turn)>=Math.PI*2){
         discover('dizzy');
         d.dizzyTriggered=true;clearTimeout(f.expressionTimer);clearTimeout(f.cryTimer);clearTimeout(f.dizzyTimer);f.crying=false;f.dizzy=true;f.image.src=f.dizzySrc;
         f.dizzyTimer=setTimeout(()=>{f.dizzy=false;f.image.src=f.normalSrc},4000);
