@@ -13,11 +13,36 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 
 
 .unit{pointer-events:auto;border:0;padding:0;background:transparent;font-family:inherit;font-weight:inherit;line-height:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.unit:focus-visible{outline:2px solid currentColor;outline-offset:4px;border-radius:4px}.party #value,.party .unit{background:linear-gradient(90deg,#ff334c,#ffba08,#26ca73,#23aeec,#a94dff,#ff334c);background-size:250% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:rainbow-shift 1.6s linear infinite}.party-trail{position:fixed;z-index:2;pointer-events:none;object-fit:contain;opacity:.65;animation:trail-fade .8s ease-out forwards}@keyframes rainbow-shift{to{background-position:250% 0}}@keyframes trail-fade{to{opacity:0;transform:scale(1.15)}}@media(prefers-reduced-motion:reduce){.party #value,.party .unit{animation:none}.party-trail{display:none}}
+
+.secret-p{display:inline-block;font:inherit;font-size:1.18em;line-height:1;color:inherit;letter-spacing:inherit;border:0;padding:0;background:none;cursor:grab;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent}.secret-p:focus-visible{outline:2px solid #bc3b3b;outline-offset:3px}.hammer-cursor{position:fixed;z-index:30;font-size:52px;line-height:1;pointer-events:none;transform:translate(-15%,-65%);filter:drop-shadow(0 3px 4px #0003)}.achievement{position:fixed;right:1rem;top:1rem;z-index:100;width:min(310px,calc(100vw - 2rem));background:#fff;border:1px solid #eadfd8;border-radius:14px;box-shadow:0 12px 35px #33221120;padding:1rem 1.15rem;text-align:left;color:#24211e}.achievement[hidden]{display:none}.achievement strong{display:block;font-size:.9rem;letter-spacing:0}.achievement p{margin:.35rem 0 0;color:#77716a;font-size:.78rem;line-height:1.4}.debris{position:fixed!important;margin:0!important;pointer-events:none!important;z-index:20!important;transform-origin:center!important}.restore-page{position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:50;background:#fff;border:1px solid #d8d2cc;border-radius:999px;padding:.7rem 1rem;font:600 .75rem system-ui;cursor:pointer}
 </style>
 </head>
-<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
+<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
+<div class="achievement" role="status" aria-live="polite" hidden><strong></strong><p></p></div>
 <script>
+const ACHIEVEMENTS_KEY = 'proyecto-japon-achievements-v1';
+const achievementNames = {cry:'hacerlos llorar',ball:'la pelota roja',throw:'lanzar las caras',dizzy:'marearlos',rainbow:'el modo multicolor',hammer:'el martillo'};
+let achievements = {};
+try { const saved=JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)); if(saved && typeof saved==='object' && !Array.isArray(saved)) achievements=saved; } catch (_) {}
+const achievementCard=document.querySelector('.achievement'), achievementQueue=[];
+let achievementShowing=false;
+function discover(id){
+  if(!achievementNames[id] || achievements[id]) return;
+  achievements[id]=true;
+  try { localStorage.setItem(ACHIEVEMENTS_KEY,JSON.stringify(achievements)); } catch (_) {}
+  const found=Object.keys(achievementNames).filter(key=>achievements[key]).length;
+  achievementQueue.push({name:achievementNames[id],remaining:Object.keys(achievementNames).length-found});
+  showAchievement();
+}
+function showAchievement(){
+  if(achievementShowing || !achievementQueue.length)return;
+  achievementShowing=true;const item=achievementQueue.shift();
+  achievementCard.querySelector('strong').textContent='¡Has encontrado un easter egg!';
+  achievementCard.querySelector('p').textContent=item.name+' · '+(item.remaining ? 'Te faltan '+item.remaining+' más.' : '¡Ya los has encontrado todos!');
+  achievementCard.hidden=false;
+  setTimeout(()=>{achievementCard.hidden=true;achievementShowing=false;showAchievement()},5000);
+}
 const percentButton = document.querySelector('.unit');
 const percentColors = ['#bc3b3b','#2864b8','#27866a','#a449bd','#e68025','#d94a88'];
 let percentColorIndex = 0;
@@ -28,6 +53,7 @@ percentButton.addEventListener('click', () => {
     percentColorIndex = (percentColorIndex + 1 + Math.floor(Math.random()*(percentColors.length-1))) % percentColors.length;
     percentButton.style.color = percentColors[percentColorIndex];
   } else {
+    discover('rainbow');
     percentButton.style.color = '';
   }
 });
@@ -44,10 +70,57 @@ setInterval(() => {
     document.body.appendChild(trail); setTimeout(()=>trail.remove(),850);
   }
 }, 140);
+// La P se convierte en martillo al arrastrarla; el siguiente toque desordena la página.
+const secretP=document.querySelector('.secret-p');
+let hammer=null, hammerDrag=null, smashed=false;
+secretP.addEventListener('pointerdown',e=>{if(e.button!==0 || smashed)return;secretP.setPointerCapture(e.pointerId);hammerDrag={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};});
+secretP.addEventListener('pointermove',e=>{
+  if(!hammerDrag || hammerDrag.id!==e.pointerId)return;
+  if(!hammerDrag.moved && Math.hypot(e.clientX-hammerDrag.x,e.clientY-hammerDrag.y)>8){
+    hammerDrag.moved=true;secretP.style.opacity='0';hammer=document.createElement('span');hammer.className='hammer-cursor';hammer.textContent='🔨';hammer.setAttribute('aria-hidden','true');document.body.appendChild(hammer);
+  }
+  if(hammerDrag.moved){hammer.style.left=e.clientX+'px';hammer.style.top=e.clientY+'px'}
+});
+secretP.addEventListener('pointerup',e=>{if(!hammerDrag || hammerDrag.id!==e.pointerId)return;if(hammerDrag.moved){hammer.dataset.ready='true'}hammerDrag=null});
+secretP.addEventListener('pointercancel',()=>{if(hammer){hammer.remove();hammer=null}secretP.style.opacity='';hammerDrag=null});
+document.addEventListener('pointermove',e=>{if(hammer && hammer.dataset.ready){hammer.style.left=e.clientX+'px';hammer.style.top=e.clientY+'px'}});
+document.addEventListener('pointerdown',e=>{if(!hammer || !hammer.dataset.ready || smashed)return;e.preventDefault();e.stopPropagation();hammer.remove();hammer=null;secretP.style.opacity='';breakPage();discover('hammer')},true);
+function breakPage(){
+  smashed=true;const pieces=[], originals=[];
+  const addPiece=(node,rect)=>{
+    if(!rect.width || !rect.height)return;
+    const clone=node.cloneNode(true);clone.removeAttribute('id');clone.setAttribute('aria-hidden','true');clone.classList.add('debris');
+    Object.assign(clone.style,{left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',transform:'none',visibility:'visible'});
+    document.body.appendChild(clone);
+    pieces.push({el:clone,x:rect.left,y:rect.top,w:rect.width,h:rect.height,vx:(Math.random()-.5)*300,vy:-100-Math.random()*260,angle:0,spin:(Math.random()-.5)*420});
+  };
+  const targets=[document.querySelector('h1'),document.querySelector('.sun'),document.querySelector('#value'),document.querySelector('.unit'),...document.querySelectorAll('.face'),document.querySelector('footer')];
+  const graph=document.querySelector('.chart-panel');if(!graph.hidden)targets.push(graph);
+  for(const node of targets){
+    if(!node || getComputedStyle(node).visibility==='hidden')continue;
+    if(node.id==='value' && node.firstChild && node.firstChild.nodeType===Node.TEXT_NODE){
+      const text=node.firstChild, style=getComputedStyle(node);
+      for(let i=0;i<text.length;i++){const range=document.createRange();range.setStart(text,i);range.setEnd(text,i+1);const digit=document.createElement('span');digit.textContent=text.data[i];Object.assign(digit.style,{font:style.font,letterSpacing:style.letterSpacing,lineHeight:style.lineHeight,color:style.color,whiteSpace:'pre'});addPiece(digit,range.getBoundingClientRect())}
+    }else addPiece(node,node.getBoundingClientRect());
+    originals.push({node,visibility:node.style.visibility});node.style.visibility='hidden';
+  }
+  let previous=null,active=true;
+  function frame(t){if(!active)return;const dt=previous===null?0:Math.min((t-previous)/1000,.04);previous=t;
+    for(const p of pieces){p.vy+=1000*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.angle+=p.spin*dt;
+      const floor=Math.max(0,innerHeight-p.h),right=Math.max(0,innerWidth-p.w);
+      if(p.y>floor){p.y=floor;p.vy*=-.35;p.vx*=.82;p.spin*=.7;if(Math.abs(p.vy)<25)p.vy=0}
+      if(p.x<0||p.x>right){p.x=Math.max(0,Math.min(right,p.x));p.vx*=-.5}
+      p.el.style.left=p.x+'px';p.el.style.top=p.y+'px';p.el.style.transform=`rotate(${p.angle}deg)`;
+    }requestAnimationFrame(frame)}
+  const restore=document.createElement('button');restore.type='button';restore.className='restore-page';restore.textContent='Volver a montar';document.body.appendChild(restore);
+  restore.addEventListener('click',()=>{active=false;pieces.forEach(p=>p.el.remove());originals.forEach(o=>o.node.style.visibility=o.visibility);restore.remove();smashed=false});
+  requestAnimationFrame(frame);
+}
 const sun = document.querySelector('.sun');
 let ball = null;
 sun.addEventListener('click', () => {
   if (!ball) {
+    discover('ball');
     const rect = sun.getBoundingClientRect();
     ball = {x:rect.left + rect.width/2 - 18, y:rect.top + rect.height/2 - 18, vx:0, vy:0, mode:'fall', last:null};
     document.body.appendChild(sun);
@@ -106,6 +179,7 @@ faces.forEach(f => f.el.addEventListener('click', () => {
   consecutiveClicks = lastClickedFace === f ? consecutiveClicks + 1 : 1;
   lastClickedFace = f;
   if (consecutiveClicks >= 10) {
+    discover('cry');
     consecutiveClicks = 0; lastClickedFace = null;
     clearTimeout(f.expressionTimer); clearTimeout(f.cryTimer); clearTimeout(f.dizzyTimer); f.dizzy = false;
     f.crying = true; f.image.src = f.cryingSrc;
@@ -135,6 +209,7 @@ faces.forEach(f => {
       if(d.angle!==null){let delta=angle-d.angle;while(delta>Math.PI)delta-=2*Math.PI;while(delta<-Math.PI)delta+=2*Math.PI;d.turn+=delta}
       d.angle=angle;d.lastMove=now;
       if(!d.dizzyTriggered && now-d.turnStart>=5000 && Math.abs(d.turn)>=Math.PI*2){
+        discover('dizzy');
         d.dizzyTriggered=true;clearTimeout(f.expressionTimer);clearTimeout(f.cryTimer);clearTimeout(f.dizzyTimer);f.crying=false;f.dizzy=true;f.image.src=f.dizzySrc;
         f.dizzyTimer=setTimeout(()=>{f.dizzy=false;f.image.src=f.normalSrc},4000);
       }
@@ -149,7 +224,7 @@ faces.forEach(f => {
       const elapsed=last.t-first.t;
       if(e.type!=='pointercancel' && now-last.t<150 && elapsed>0){
         let vx=(last.x-first.x)*1000/elapsed, vy=(last.y-first.y)*1000/elapsed, speed=Math.hypot(vx,vy);
-        if(speed>80){const scale=Math.min(1,900/speed);f.vx=vx*scale;f.vy=vy*scale}
+        if(speed>80){discover('throw');const scale=Math.min(1,900/speed);f.vx=vx*scale;f.vy=vy*scale}
       }
       f.restoreAt=now+1800;
     }
