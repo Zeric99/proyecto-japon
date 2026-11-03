@@ -6,7 +6,7 @@
 <style>
 :root{font-family:system-ui,-apple-system,sans-serif;color:#24211e;background:#fff}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:flex;flex-direction:column;align-items:center;text-align:center}header{padding:clamp(2.5rem,7vh,5rem) 1rem 0}h1{font-size:clamp(.85rem,2vw,1rem);letter-spacing:.25em;text-transform:uppercase;font-weight:600;margin:0}.sun{display:block;width:12px;height:12px;border:0;padding:0;border-radius:50%;background:#bc3b3b;margin:0 auto 1.4rem;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}.sun:focus-visible{outline:2px solid #bc3b3b;outline-offset:4px}.sun.active{position:fixed;margin:0;width:36px;height:36px;z-index:8;touch-action:manipulation;box-shadow:inset -4px -5px 0 #0002,0 3px 6px #0002}main{flex:1;display:grid;place-content:center;padding:1rem 1rem 10vh}.number{font-size:clamp(4rem,18vw,16rem);font-weight:700;line-height:1;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap}.unit{font-size:.34em;letter-spacing:0;margin-left:.1em;color:#bc3b3b}footer{padding:0 1rem 2.5rem;color:#77716a;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
 
-body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:3;will-change:transform;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;padding:0;border:0;background:transparent}.face img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;pointer-events:none;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(max-width:600px){.number{font-size:clamp(5rem,29vw,11rem)}.face{width:clamp(135px,36vw,200px);height:clamp(135px,36vw,200px)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
+body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:3;will-change:transform;cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;padding:0;border:0;background:transparent}.face img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;pointer-events:none;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(max-width:600px){.number{font-size:clamp(5rem,29vw,11rem)}.face{width:clamp(135px,36vw,200px);height:clamp(135px,36vw,200px)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
 
 footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:#fff;color:#24211e;border:1px solid #d8d2cc;border-radius:999px;padding:.8rem 1.5rem;display:block;margin:1rem auto 0}.chart-toggle:focus-visible,select:focus-visible{outline:3px solid #bc3b3b;outline-offset:3px}.chart-panel[hidden]{display:none}.chart-panel{position:relative;z-index:auto;width:min(90vw,700px);height:clamp(210px,32vh,320px);display:flex;flex-direction:column;text-align:left;background:rgba(255,255,255,.94);border-top:1px solid #eeeae6;padding-top:.7rem}.chart-header{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:1rem}.chart-header h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin:0}.chart-subtitle{color:#77716a;font-size:.72rem;letter-spacing:normal;text-transform:none;margin:0}.chart-subtitle select{font:inherit;color:#24211e;background:transparent;border:0;cursor:pointer}.chart-wrap{position:relative;flex:1;min-height:120px}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-note{font-size:.65rem;line-height:1.3;color:#99918b;letter-spacing:normal;text-transform:none;margin:0 0 .3rem}.chart-open main{flex:1;padding:1rem;min-height:0}.chart-open .number{font-size:clamp(3.5rem,12vw,8rem)}.chart-open footer{padding:1rem 1rem 1.5rem}@media(max-width:600px){.chart-open .number{font-size:clamp(4rem,18vw,6rem)}.chart-panel{width:92vw;height:32vh}}
 
@@ -51,14 +51,17 @@ const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,v
 // Precargar las expresiones para que aparezcan sin retrasos.
 const surprisedFaces = ['face-1-surprised.png', 'face-2-surprised.png', 'face-3-surprised.png'];
 const cryingFaces = ['face-1-crying.png', 'face-2-crying.png', 'face-3-crying.png'];
+const dizzyFaces = ['face-1-dizzy.png', 'face-2-dizzy.png', 'face-3-dizzy.png'];
 faces.forEach((f, i) => {
   f.image = f.el.querySelector('img'); f.normalSrc = f.image.getAttribute('src');
   f.surprisedSrc = surprisedFaces[i];
   const preload = new Image(); preload.src = f.surprisedSrc;
   f.cryingSrc = cryingFaces[i]; const cryingPreload = new Image(); cryingPreload.src = f.cryingSrc;
+  f.dizzySrc = dizzyFaces[i]; const dizzyPreload = new Image(); dizzyPreload.src = f.dizzySrc;
+  f.baseSpeed = Math.hypot(f.vx, f.vy);
 });
 function bounceEffect(f) {
-  if (!f.crying) {
+  if (!f.crying && !f.dizzy) {
     f.image.src = f.surprisedSrc;
     clearTimeout(f.expressionTimer);
     f.expressionTimer = setTimeout(() => { f.image.src = f.normalSrc; }, 800);
@@ -71,22 +74,68 @@ function bounceEffect(f) {
 }
 let lastClickedFace = null, consecutiveClicks = 0;
 faces.forEach(f => f.el.addEventListener('click', () => {
+  if (f.suppressClick) { f.suppressClick = false; return; }
   consecutiveClicks = lastClickedFace === f ? consecutiveClicks + 1 : 1;
   lastClickedFace = f;
   if (consecutiveClicks >= 10) {
     consecutiveClicks = 0; lastClickedFace = null;
-    clearTimeout(f.expressionTimer); clearTimeout(f.cryTimer);
+    clearTimeout(f.expressionTimer); clearTimeout(f.cryTimer); clearTimeout(f.dizzyTimer); f.dizzy = false;
     f.crying = true; f.image.src = f.cryingSrc;
     f.cryTimer = setTimeout(() => { f.crying = false; f.image.src = f.normalSrc; }, 4000);
   }
   f.vx *= -1; f.vy *= -1; bounceEffect(f);
 }));
+// Arrastrar y lanzar; al soltar, la velocidad va regresando a la habitual.
+faces.forEach(f => {
+  f.el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    f.el.setPointerCapture(e.pointerId);
+    f.drag = {id:e.pointerId, startX:e.clientX, startY:e.clientY, offsetX:e.clientX-f.x, offsetY:e.clientY-f.y, samples:[{x:e.clientX,y:e.clientY,t:performance.now()}], moved:false, turn:0, angle:null, turnStart:null, lastMove:null, dizzyTriggered:false};
+    f.el.style.cursor='grabbing';
+  });
+  f.el.addEventListener('pointermove', e => {
+    const d=f.drag; if(!d || d.id!==e.pointerId) return;
+    const now=performance.now(), prev=d.samples[d.samples.length-1], dx=e.clientX-prev.x, dy=e.clientY-prev.y;
+    if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>8) d.moved=true;
+    if(!d.moved) return;
+    f.x=Math.max(0,Math.min(innerWidth-f.el.offsetWidth,e.clientX-d.offsetX));
+    f.y=Math.max(0,Math.min(innerHeight-f.el.offsetHeight,e.clientY-d.offsetY));
+    f.el.style.transform=`translate(${f.x}px,${f.y}px)`;
+    if(Math.hypot(dx,dy)>1){
+      if(d.lastMove===null || now-d.lastMove>700){d.turn=0;d.angle=null;d.turnStart=now}
+      const angle=Math.atan2(dy,dx);
+      if(d.angle!==null){let delta=angle-d.angle;while(delta>Math.PI)delta-=2*Math.PI;while(delta<-Math.PI)delta+=2*Math.PI;d.turn+=delta}
+      d.angle=angle;d.lastMove=now;
+      if(!d.dizzyTriggered && now-d.turnStart>=5000 && Math.abs(d.turn)>=Math.PI*2){
+        d.dizzyTriggered=true;clearTimeout(f.expressionTimer);clearTimeout(f.cryTimer);clearTimeout(f.dizzyTimer);f.crying=false;f.dizzy=true;f.image.src=f.dizzySrc;
+        f.dizzyTimer=setTimeout(()=>{f.dizzy=false;f.image.src=f.normalSrc},4000);
+      }
+    }
+    d.samples.push({x:e.clientX,y:e.clientY,t:now});d.samples=d.samples.filter(p=>now-p.t<=140);
+  });
+  function release(e){
+    const d=f.drag;if(!d || d.id!==e.pointerId)return;f.drag=null;f.el.style.cursor='grab';
+    if(d.moved){
+      f.suppressClick=true; setTimeout(()=>{f.suppressClick=false},500);
+      const now=performance.now(), last=d.samples[d.samples.length-1], first=d.samples[0];
+      const elapsed=last.t-first.t;
+      if(e.type!=='pointercancel' && now-last.t<150 && elapsed>0){
+        let vx=(last.x-first.x)*1000/elapsed, vy=(last.y-first.y)*1000/elapsed, speed=Math.hypot(vx,vy);
+        if(speed>80){const scale=Math.min(1,900/speed);f.vx=vx*scale;f.vy=vy*scale}
+      }
+      f.restoreAt=now+1800;
+    }
+  }
+  f.el.addEventListener('pointerup',release);f.el.addEventListener('pointercancel',release);
+});
 let lastFrame;
 function animate(time) {
   const dt = lastFrame === undefined ? 0 : Math.min((time-lastFrame)/1000,.05); lastFrame=time;
   for (const f of faces) {
     const w=f.el.offsetWidth,h=f.el.offsetHeight,maxX=Math.max(0,innerWidth-w),maxY=Math.max(0,innerHeight-h);
     if(!f.initialized){f.x=maxX*([.12,.8,.5][faces.indexOf(f)]);f.y=maxY*([.15,.8,.45][faces.indexOf(f)]);f.initialized=true}
+    if(f.drag) continue;
+    if(f.restoreAt && time>f.restoreAt){const speed=Math.hypot(f.vx,f.vy);if(speed>0){const next=f.baseSpeed+(speed-f.baseSpeed)*Math.exp(-dt*.8);f.vx*=next/speed;f.vy*=next/speed;if(Math.abs(next-f.baseSpeed)<1)f.restoreAt=null}}
     f.x+=f.vx*dt;f.y+=f.vy*dt;let hit=false;
     if(f.x<0||f.x>maxX){f.x=Math.max(0,Math.min(maxX,f.x));f.vx*=-1;hit=true}
     if(f.y<0||f.y>maxY){f.y=Math.max(0,Math.min(maxY,f.y));f.vy*=-1;hit=true}
@@ -165,5 +214,6 @@ function step() {
 showValue();
 setInterval(step, 3000);
 </script></body></html>
+
 
 
