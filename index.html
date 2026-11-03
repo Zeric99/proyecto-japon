@@ -11,11 +11,39 @@ body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-eve
 footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:#fff;color:#24211e;border:1px solid #d8d2cc;border-radius:999px;padding:.8rem 1.5rem;display:block;margin:1rem auto 0}.chart-toggle:focus-visible,select:focus-visible{outline:3px solid #bc3b3b;outline-offset:3px}.chart-panel[hidden]{display:none}.chart-panel{position:relative;z-index:auto;width:min(90vw,700px);height:clamp(210px,32vh,320px);display:flex;flex-direction:column;text-align:left;background:rgba(255,255,255,.94);border-top:1px solid #eeeae6;padding-top:.7rem}.chart-header{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:1rem}.chart-header h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin:0}.chart-subtitle{color:#77716a;font-size:.72rem;letter-spacing:normal;text-transform:none;margin:0}.chart-subtitle select{font:inherit;color:#24211e;background:transparent;border:0;cursor:pointer}.chart-wrap{position:relative;flex:1;min-height:120px}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-note{font-size:.65rem;line-height:1.3;color:#99918b;letter-spacing:normal;text-transform:none;margin:0 0 .3rem}.chart-open main{flex:1;padding:1rem;min-height:0}.chart-open .number{font-size:clamp(3.5rem,12vw,8rem)}.chart-open footer{padding:1rem 1rem 1.5rem}@media(max-width:600px){.chart-open .number{font-size:clamp(4rem,18vw,6rem)}.chart-panel{width:92vw;height:32vh}}
 
 
+
+.unit{pointer-events:auto;border:0;padding:0;background:transparent;font-family:inherit;font-weight:inherit;line-height:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.unit:focus-visible{outline:2px solid currentColor;outline-offset:4px;border-radius:4px}.party #value,.party .unit{background:linear-gradient(90deg,#ff334c,#ffba08,#26ca73,#23aeec,#a94dff,#ff334c);background-size:250% 100%;background-clip:text;-webkit-background-clip:text;color:transparent;animation:rainbow-shift 1.6s linear infinite}.party-trail{position:fixed;z-index:2;pointer-events:none;object-fit:contain;opacity:.65;animation:trail-fade .8s ease-out forwards}@keyframes rainbow-shift{to{background-position:250% 0}}@keyframes trail-fade{to{opacity:0;transform:scale(1.15)}}@media(prefers-reduced-motion:reduce){.party #value,.party .unit{animation:none}.party-trail{display:none}}
 </style>
 </head>
-<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
+<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
 <script>
+const percentButton = document.querySelector('.unit');
+const percentColors = ['#bc3b3b','#2864b8','#27866a','#a449bd','#e68025','#d94a88'];
+let percentColorIndex = 0;
+percentButton.addEventListener('click', () => {
+  const multicolor = Math.random() < .01;
+  document.body.classList.toggle('party', multicolor);
+  if (!multicolor) {
+    percentColorIndex = (percentColorIndex + 1 + Math.floor(Math.random()*(percentColors.length-1))) % percentColors.length;
+    percentButton.style.color = percentColors[percentColorIndex];
+  } else {
+    percentButton.style.color = '';
+  }
+});
+// El rastro es decorativo y solo existe mientras está activo el modo multicolor.
+let trailHue = 0;
+setInterval(() => {
+  if (!document.body.classList.contains('party') || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  trailHue = (trailHue + 55) % 360;
+  for (const face of document.querySelectorAll('.face')) {
+    const rect=face.getBoundingClientRect(), original=face.querySelector('img');
+    const trail=document.createElement('img'); trail.className='party-trail'; trail.src=original.currentSrc || original.src; trail.alt=''; trail.setAttribute('aria-hidden','true');
+    trail.style.left=rect.left+'px'; trail.style.top=rect.top+'px'; trail.style.width=rect.width+'px'; trail.style.height=rect.height+'px';
+    trail.style.filter=`sepia(1) saturate(8) hue-rotate(${trailHue}deg)`;
+    document.body.appendChild(trail); setTimeout(()=>trail.remove(),850);
+  }
+}, 140);
 const sun = document.querySelector('.sun');
 let ball = null;
 sun.addEventListener('click', () => {
