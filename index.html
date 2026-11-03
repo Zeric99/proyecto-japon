@@ -47,14 +47,18 @@ const percentButton = document.querySelector('.unit');
 const percentColors = ['#bc3b3b','#2864b8','#27866a','#a449bd','#e68025','#d94a88'];
 let percentColorIndex = 0;
 percentButton.addEventListener('click', () => {
-  const multicolor = Math.random() < .01;
-  document.body.classList.toggle('party', multicolor);
-  if (!multicolor) {
-    percentColorIndex = (percentColorIndex + 1 + Math.floor(Math.random()*(percentColors.length-1))) % percentColors.length;
-    percentButton.style.color = percentColors[percentColorIndex];
-  } else {
+  if (document.body.classList.contains('party')) return;
+  if (Math.random() < .1) {
+    document.body.classList.add('party');
     discover('rainbow');
     percentButton.style.color = '';
+    setTimeout(() => {
+      document.body.classList.remove('party');
+      percentButton.style.color = percentColors[percentColorIndex];
+    }, 30000);
+  } else {
+    percentColorIndex = (percentColorIndex + 1 + Math.floor(Math.random()*(percentColors.length-1))) % percentColors.length;
+    percentButton.style.color = percentColors[percentColorIndex];
   }
 });
 // El rastro es decorativo y solo existe mientras está activo el modo multicolor.
