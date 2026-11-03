@@ -10,7 +10,7 @@ body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-eve
 
 footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:#fff;color:#24211e;border:1px solid #d8d2cc;border-radius:999px;padding:.8rem 1.5rem;display:block;margin:1rem auto 0}.chart-toggle:focus-visible,select:focus-visible{outline:3px solid #bc3b3b;outline-offset:3px}.chart-panel[hidden]{display:none}.chart-panel{position:relative;z-index:auto;width:min(90vw,700px);height:clamp(210px,32vh,320px);display:flex;flex-direction:column;text-align:left;background:rgba(255,255,255,.94);border-top:1px solid #eeeae6;padding-top:.7rem}.chart-header{position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:1rem}.chart-header h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin:0}.chart-subtitle{color:#77716a;font-size:.72rem;letter-spacing:normal;text-transform:none;margin:0}.chart-subtitle select{font:inherit;color:#24211e;background:transparent;border:0;cursor:pointer}.chart-wrap{position:relative;flex:1;min-height:120px}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-note{font-size:.65rem;line-height:1.3;color:#99918b;letter-spacing:normal;text-transform:none;margin:0 0 .3rem}.chart-open main{flex:1;padding:1rem;min-height:0}.chart-open .number{font-size:clamp(3.5rem,12vw,8rem)}.chart-open footer{padding:1rem 1rem 1.5rem}@media(max-width:600px){.chart-open .number{font-size:clamp(4rem,18vw,6rem)}.chart-panel{width:92vw;height:32vh}}
 
-.tears{display:none;position:absolute;inset:0;pointer-events:none}.face.crying .tears{display:block}.tears::before,.tears::after{content:"";position:absolute;top:52%;width:8%;height:43%;border-radius:40% 40% 50% 50%;background:linear-gradient(90deg,#168bdc,#8deaff 45%,#18a3eb);box-shadow:0 0 0 1px #fff8;transform-origin:top;animation:tear-flow .48s ease-in-out infinite alternate}.tears::before{left:38%}.tears::after{right:38%;animation-delay:-.24s}@keyframes tear-flow{from{transform:scaleY(.8)}to{transform:scaleY(1.08)}}@media(prefers-reduced-motion:reduce){.tears::before,.tears::after{animation:none}}
+
 </style>
 </head>
 <body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
@@ -50,11 +50,12 @@ function moveBall(time) {
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70][i],vy:[68,82,-78][i],initialized:false}));
 // Precargar las expresiones para que aparezcan sin retrasos.
 const surprisedFaces = ['face-1-surprised.png', 'face-2-surprised.png', 'face-3-surprised.png'];
+const cryingFaces = ['face-1-crying.png', 'face-2-crying.png', 'face-3-crying.png'];
 faces.forEach((f, i) => {
   f.image = f.el.querySelector('img'); f.normalSrc = f.image.getAttribute('src');
   f.surprisedSrc = surprisedFaces[i];
   const preload = new Image(); preload.src = f.surprisedSrc;
-  const tears = document.createElement('span'); tears.className = 'tears'; tears.setAttribute('aria-hidden','true'); f.el.appendChild(tears);
+  f.cryingSrc = cryingFaces[i]; const cryingPreload = new Image(); cryingPreload.src = f.cryingSrc;
 });
 function bounceEffect(f) {
   if (!f.crying) {
@@ -75,8 +76,8 @@ faces.forEach(f => f.el.addEventListener('click', () => {
   if (consecutiveClicks >= 10) {
     consecutiveClicks = 0; lastClickedFace = null;
     clearTimeout(f.expressionTimer); clearTimeout(f.cryTimer);
-    f.crying = true; f.image.src = f.normalSrc; f.el.classList.add('crying');
-    f.cryTimer = setTimeout(() => { f.crying = false; f.el.classList.remove('crying'); f.image.src = f.normalSrc; }, 4000);
+    f.crying = true; f.image.src = f.cryingSrc;
+    f.cryTimer = setTimeout(() => { f.crying = false; f.image.src = f.normalSrc; }, 4000);
   }
   f.vx *= -1; f.vy *= -1; bounceEffect(f);
 }));
