@@ -9,7 +9,7 @@
 body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:3;will-change:transform;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;padding:0;border:0;background:transparent}.face img{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;pointer-events:none;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(max-width:600px){.number{font-size:clamp(5rem,29vw,11rem)}.face{width:clamp(135px,36vw,200px);height:clamp(135px,36vw,200px)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
 </style>
 </head>
-<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">2,40</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
+<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
 <script>
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70][i],vy:[68,82,-78][i],initialized:false}));
@@ -49,7 +49,7 @@ if(!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFram
 else faces.forEach((f,i)=>{f.el.style.transform=`translate(${[10,70,40][i]}vw,${[70,70,15][i]}vh)`});
 
 // Cambiar este valor cuando se reciba una nueva cifra en el chat.
-const BASE = 2.4;
+const BASE = 4.4;
 const KEY = 'proyecto-japon-v2-' + BASE;
 const lower = Math.max(0, Math.round(BASE * 100) - 100);
 const upper = Math.min(10000, Math.round(BASE * 100) + 100);
