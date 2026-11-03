@@ -17,6 +17,8 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 .secret-p{display:inline-block;text-transform:uppercase;font:inherit;font-size:1.18em;line-height:1;color:inherit;letter-spacing:inherit;border:0;padding:0;background:none;cursor:grab;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;transform:rotate(-6deg)}.secret-p.japan{transform:rotate(6deg)}.secret-p:focus-visible{outline:2px solid #bc3b3b;outline-offset:3px}.hammer-cursor{position:fixed;z-index:30;font-size:52px;line-height:1;pointer-events:none;transform:translate(-15%,-65%);filter:drop-shadow(0 3px 4px #0003)}.achievement{position:fixed;right:1rem;top:1rem;z-index:100;width:min(310px,calc(100vw - 2rem));background:#fff;border:1px solid #eadfd8;border-radius:14px;box-shadow:0 12px 35px #33221120;padding:1rem 1.15rem;text-align:left;color:#24211e}.achievement[hidden]{display:none}.achievement strong{display:block;font-size:.9rem;letter-spacing:0}.achievement p{margin:.35rem 0 0;color:#77716a;font-size:.78rem;line-height:1.4}.debris{position:fixed!important;margin:0!important;pointer-events:none!important;z-index:20!important;transform-origin:center!important}.restore-page{position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:50;background:#fff;border:1px solid #d8d2cc;border-radius:999px;padding:.7rem 1rem;font:600 .75rem system-ui;cursor:pointer}
 
 .face[hidden]{display:none}.mystery-search{display:flex;align-items:center;width:min(180px,65vw);margin:.75rem auto 0;border:1px solid #e5dfd9;border-radius:999px;background:#fff;overflow:hidden}.mystery-search input{width:100%;min-width:0;border:0;outline:0;padding:.55rem .3rem .55rem .8rem;font:400 .75rem system-ui;color:#24211e;background:transparent}.mystery-search input::placeholder{color:#aaa39c}.mystery-search.error{border-color:#bc3b3b}.mystery-search.error input::placeholder{color:#bc3b3b}.mystery-search button{border:0;background:transparent;color:#77716a;font-size:1rem;cursor:pointer;padding:.35rem .7rem}.mystery-search:focus-within{outline:2px solid #d5bbb6;outline-offset:2px}.chart-open footer{padding-bottom:.5rem}
+
+.bouncing-emoji{position:fixed;left:0;top:0;z-index:3;pointer-events:none;user-select:none;font-size:clamp(2.5rem,9vw,4.5rem);line-height:1;will-change:transform}
 </style>
 </head>
 <body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Ja<button class="secret-p japan" type="button" aria-label="P de Japón">p</button>ón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button><form class="mystery-search" role="search"><input type="search" aria-label="Buscar" placeholder="Buscar" autocomplete="off"><button type="submit" aria-label="Buscar">⌕</button></form></footer>
@@ -24,7 +26,7 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 <div class="achievement" role="status" aria-live="polite" hidden><strong></strong><p></p></div>
 <script>
 const ACHIEVEMENTS_KEY = 'proyecto-japon-achievements-v1';
-const achievementNames = {cry:'hacerlos llorar',ball:'la pelota roja',throw:'lanzar las caras',dizzy:'marearlos',rainbow:'el modo multicolor',hammer:'el martillo',lolo:'la visita sorpresa'};
+const achievementNames = {cry:'hacerlos llorar',ball:'la pelota roja',throw:'lanzar las caras',dizzy:'marearlos',rainbow:'el modo multicolor',hammer:'el martillo',lolo:'la visita sorpresa',emoji:'los emojis'};
 let achievements = {};
 try { const saved=JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)); if(saved && typeof saved==='object' && !Array.isArray(saved)) achievements=saved; } catch (_) {}
 const achievementCard=document.querySelector('.achievement'), achievementQueue=[];
@@ -161,15 +163,26 @@ function moveBall(time) {
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70,-80][i],vy:[68,82,-78,-65][i],initialized:false}));
 const searchForm = document.querySelector('.mystery-search');
 const searchInput = searchForm.querySelector('input');
-searchForm.addEventListener('submit', e => {
+// Nombres de emoji derivados de Unicode CLDR; licencia en UNICODE-LICENSE.txt.
+const emojiCatalog = fetch('emoji-es.json').then(r => { if(!r.ok) throw new Error('No se pudo cargar el catálogo'); return r.json(); }).catch(() => ({}));
+const emojiSprites=[];
+function addEmoji(symbol){
+  const el=document.createElement('span');el.className='bouncing-emoji';el.textContent=symbol;el.setAttribute('aria-hidden','true');document.body.appendChild(el);
+  const sprite={el,x:Math.max(0,(innerWidth-el.offsetWidth)/2),y:Math.max(0,(innerHeight-el.offsetHeight)/2),vx:(Math.random()<.5?-1:1)*(80+Math.random()*65),vy:(Math.random()<.5?-1:1)*(70+Math.random()*65)};
+  emojiSprites.push(sprite);el.style.transform=`translate(${sprite.x}px,${sprite.y}px)`;
+  if(emojiSprites.length>50){emojiSprites.shift().el.remove()}
+}
+searchForm.addEventListener('submit', async e => {
   e.preventDefault();
-  const query = searchInput.value.trim();
-  if(query.toLocaleLowerCase('es') === 'lolo') {
+  const query = searchInput.value.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(query === 'lolo') {
     faces[3].el.hidden=false;
     searchForm.classList.remove('error'); searchInput.value=''; searchInput.placeholder='Buscar';
     discover('lolo');
   } else {
-    searchInput.value=''; searchInput.placeholder='Error'; searchForm.classList.add('error');
+    const catalog=await emojiCatalog;
+    if(query && catalog[query]) { addEmoji(catalog[query]); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
+    else { searchInput.value=''; searchInput.placeholder='Error'; searchForm.classList.add('error'); }
   }
 });
 searchInput.addEventListener('input',()=>{searchForm.classList.remove('error'); searchInput.placeholder='Buscar'});
@@ -269,6 +282,13 @@ function animate(time) {
     if(f.y<0||f.y>maxY){f.y=Math.max(0,Math.min(maxY,f.y));f.vy*=-1;hit=true}
     f.el.style.transform=`translate(${f.x}px,${f.y}px)`;
     if(hit) bounceEffect(f);
+  }
+  for(const emoji of emojiSprites){
+    const maxX=Math.max(0,innerWidth-emoji.el.offsetWidth),maxY=Math.max(0,innerHeight-emoji.el.offsetHeight);
+    emoji.x+=emoji.vx*dt;emoji.y+=emoji.vy*dt;
+    if(emoji.x<0||emoji.x>maxX){emoji.x=Math.max(0,Math.min(maxX,emoji.x));emoji.vx*=-1}
+    if(emoji.y<0||emoji.y>maxY){emoji.y=Math.max(0,Math.min(maxY,emoji.y));emoji.vy*=-1}
+    emoji.el.style.transform=`translate(${emoji.x}px,${emoji.y}px)`;
   }
   requestAnimationFrame(animate);
 }
