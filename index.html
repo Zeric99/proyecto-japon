@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff"><title>Proyecto Japón</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#24211e;background:#fff}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:flex;flex-direction:column;align-items:center;text-align:center}header{padding:clamp(2.5rem,7vh,5rem) 1rem 0}h1{font-size:clamp(.85rem,2vw,1rem);letter-spacing:.25em;text-transform:uppercase;font-weight:600;margin:0}.sun{width:12px;height:12px;border-radius:50%;background:#bc3b3b;margin:0 auto 1.4rem}main{flex:1;display:grid;place-content:center;padding:1rem 1rem 10vh}.number{font-size:clamp(6rem,23vw,19rem);font-weight:300;line-height:1;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap}.unit{font-size:.34em;letter-spacing:0;margin-left:.1em;color:#bc3b3b}footer{padding:0 1rem 2.5rem;color:#77716a;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
+
+body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:1;will-change:transform;pointer-events:none}.face img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
+</style>
+</head>
+<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,0</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
+<div class="face"><img src="face-1.png" alt=""></div><div class="face"><img src="face-2.png" alt=""></div>
+<script>
+const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:i ? -75 : 85,vy:i ? 82 : 68,initialized:false}));
+let lastFrame;
+function animate(time) {
+  const dt = lastFrame === undefined ? 0 : Math.min((time-lastFrame)/1000,.05); lastFrame=time;
+  for (const f of faces) {
+    const w=f.el.offsetWidth,h=f.el.offsetHeight,maxX=Math.max(0,innerWidth-w),maxY=Math.max(0,innerHeight-h);
+    if(!f.initialized){f.x=maxX*(f.vx>0?.12:.8);f.y=maxY*(f.vy>0?.15:.8);f.initialized=true}
+    f.x+=f.vx*dt;f.y+=f.vy*dt;let hit=false;
+    if(f.x<0||f.x>maxX){f.x=Math.max(0,Math.min(maxX,f.x));f.vx*=-1;hit=true}
+    if(f.y<0||f.y>maxY){f.y=Math.max(0,Math.min(maxY,f.y));f.vy*=-1;hit=true}
+    f.el.style.transform=`translate(${f.x}px,${f.y}px)`;
+    if(hit){f.el.classList.remove('hit');void f.el.offsetWidth;f.el.classList.add('hit');const spark=document.createElement('span');spark.className='spark';spark.style.left=(f.x+w/2)+'px';spark.style.top=(f.y+h/2)+'px';document.body.appendChild(spark);spark.addEventListener('animationend',()=>spark.remove(),{once:true});setTimeout(()=>spark.remove(),600)}
+  }
+  requestAnimationFrame(animate);
+}
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(animate);
+else faces.forEach((f,i)=>{f.el.style.transform=`translate(${i?75:10}vw,70vh)`});
+
+// Cambiar este valor cuando se reciba una nueva cifra en el chat.
+const BASE = 4;
+const KEY = 'proyecto-japon-v1-' + BASE;
+const minute = Math.floor(Date.now() / 60000);
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
+if (!state || !Number.isInteger(state.value) || state.value < BASE * 10 - 10 || state.value > BASE * 10 + 10 || state.minute > minute) state = {value: Math.round(BASE * 10), minute};
+function step() {
+  const r = Math.random();
+  const magnitude = r < .90 ? 1 : r < .99 ? 2 : 3;
+  const direction = Math.random() < .5 ? -1 : 1;
+  const lower = Math.max(0, Math.round(BASE * 10) - 10), upper = Math.min(1000, Math.round(BASE * 10) + 10);
+  state.value = Math.max(lower, Math.min(upper, state.value + direction * magnitude));
+}
+function update() {
+  const now = Math.floor(Date.now() / 60000);
+  // Al volver tras una ausencia, retomar desde el último valor sin saltos visibles.
+  if (now > state.minute) { step(); state.minute = now; }
+  document.getElementById('value').textContent = (state.value / 10).toFixed(1).replace('.', ',');
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {}
+  setTimeout(update, 60000 - Date.now() % 60000 + 20);
+}
+update();
+</script></body></html>
