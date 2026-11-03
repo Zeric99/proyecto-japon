@@ -164,7 +164,18 @@ const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,v
 const searchForm = document.querySelector('.mystery-search');
 const searchInput = searchForm.querySelector('input');
 // Nombres de emoji derivados de Unicode CLDR; licencia en UNICODE-LICENSE.txt.
-const emojiCatalog = fetch('emoji-es.json').then(r => { if(!r.ok) throw new Error('No se pudo cargar el catálogo'); return r.json(); }).catch(() => ({}));
+const emojiFallback = {manzana:'🍎',arbol:'🌳',perro:'🐶',gato:'🐱',corazon:'❤️',sol:'☀️',luna:'🌙',flor:'🌸',casa:'🏠',coche:'🚗',avion:'✈️',japon:'🇯🇵'};
+const emojiCatalog = fetch('emoji-es-v2.json').then(r => { if(!r.ok) throw new Error('No se pudo cargar el catálogo'); return r.json(); }).then(data=>Object.assign({},emojiFallback,data)).catch(() => emojiFallback);
+function findEmoji(query,catalog){
+  if(catalog[query]) return catalog[query];
+  if(query.endsWith('es') && catalog[query.slice(0,-2)]) return catalog[query.slice(0,-2)];
+  if(query.endsWith('s') && catalog[query.slice(0,-1)]) return catalog[query.slice(0,-1)];
+  if(/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20e3]/u.test(query)) {
+    const oneGrapheme = typeof Intl.Segmenter !== 'function' || [...new Intl.Segmenter('es',{granularity:'grapheme'}).segment(query)].length===1;
+    if(oneGrapheme) return query;
+  }
+  return null;
+}
 const emojiSprites=[];
 function addEmoji(symbol){
   const el=document.createElement('span');el.className='bouncing-emoji';el.textContent=symbol;el.setAttribute('aria-hidden','true');document.body.appendChild(el);
@@ -181,7 +192,8 @@ searchForm.addEventListener('submit', async e => {
     discover('lolo');
   } else {
     const catalog=await emojiCatalog;
-    if(query && catalog[query]) { addEmoji(catalog[query]); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
+    const emoji=query && findEmoji(query,catalog);
+    if(emoji) { addEmoji(emoji); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
     else { searchInput.value=''; searchInput.placeholder='Error'; searchForm.classList.add('error'); }
   }
 });
