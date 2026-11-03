@@ -10,11 +10,11 @@ body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-eve
 </style>
 </head>
 <body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,00</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
-<button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button>
+<button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
 <script>
-const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:i ? -75 : 85,vy:i ? 82 : 68,initialized:false}));
+const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70][i],vy:[68,82,-78][i],initialized:false}));
 // Precargar las expresiones para que aparezcan sin retrasos.
-const surprisedFaces = ['face-1-surprised.png', 'face-2-surprised.png'];
+const surprisedFaces = ['face-1-surprised.png', 'face-2-surprised.png', 'face-3-surprised.png'];
 faces.forEach((f, i) => {
   f.image = f.el.querySelector('img'); f.normalSrc = f.image.getAttribute('src');
   f.surprisedSrc = surprisedFaces[i];
@@ -36,7 +36,7 @@ function animate(time) {
   const dt = lastFrame === undefined ? 0 : Math.min((time-lastFrame)/1000,.05); lastFrame=time;
   for (const f of faces) {
     const w=f.el.offsetWidth,h=f.el.offsetHeight,maxX=Math.max(0,innerWidth-w),maxY=Math.max(0,innerHeight-h);
-    if(!f.initialized){f.x=maxX*(f.vx>0?.12:.8);f.y=maxY*(f.vy>0?.15:.8);f.initialized=true}
+    if(!f.initialized){f.x=maxX*([.12,.8,.5][faces.indexOf(f)]);f.y=maxY*([.15,.8,.45][faces.indexOf(f)]);f.initialized=true}
     f.x+=f.vx*dt;f.y+=f.vy*dt;let hit=false;
     if(f.x<0||f.x>maxX){f.x=Math.max(0,Math.min(maxX,f.x));f.vx*=-1;hit=true}
     if(f.y<0||f.y>maxY){f.y=Math.max(0,Math.min(maxY,f.y));f.vy*=-1;hit=true}
@@ -46,7 +46,7 @@ function animate(time) {
   requestAnimationFrame(animate);
 }
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(animate);
-else faces.forEach((f,i)=>{f.el.style.transform=`translate(${i?75:10}vw,70vh)`});
+else faces.forEach((f,i)=>{f.el.style.transform=`translate(${[10,70,40][i]}vw,${[70,70,15][i]}vh)`});
 
 // Cambiar este valor cuando se reciba una nueva cifra en el chat.
 const BASE = 4;
