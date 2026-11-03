@@ -21,6 +21,8 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 .bouncing-emoji{position:fixed;left:0;top:0;z-index:3;pointer-events:none;user-select:none;font-size:clamp(2.5rem,9vw,4.5rem);line-height:1;will-change:transform}
 
 .face-accessory{position:absolute;left:50%;pointer-events:none;user-select:none;z-index:1;line-height:1;transform:translate(-50%,-50%);font-size:min(6vw,70px);white-space:nowrap}.accessory-hat{top:3%}.accessory-glasses{top:51%;font-size:min(5vw,56px)}.accessory-mustache{top:71%;width:36%;height:18%;display:grid;place-items:center}.accessory-mustache svg{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1px #0005)}@media(max-width:600px){.face-accessory{font-size:min(17vw,85px)}.accessory-glasses{font-size:min(14vw,72px)}}
+
+.celebrate header,.celebrate main,.celebrate footer{animation:celebrate-shake .17s linear infinite}.celebration-overlay{position:fixed;inset:0;z-index:90;pointer-events:none;display:grid;place-items:center;overflow:hidden}.celebration-message{position:relative;z-index:2;max-width:min(90vw,580px);padding:1rem 1.5rem;text-align:center;color:#24211e;background:#fffffff0;border-radius:20px;box-shadow:0 8px 35px #0002;font-size:clamp(1.5rem,5vw,3rem);font-weight:800;line-height:1.2}.firework{position:absolute;bottom:-70px;font-size:clamp(2rem,6vw,4rem);animation:launch-firework 2s ease-out infinite;animation-delay:var(--delay)}@keyframes celebrate-shake{0%,100%{translate:0 0}25%{translate:2px -2px}75%{translate:-2px 2px}}@keyframes launch-firework{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}75%{opacity:1}100%{transform:translateY(-85vh) scale(1.5) rotate(25deg);opacity:0}}@media(prefers-reduced-motion:reduce){.celebrate header,.celebrate main,.celebrate footer,.firework{animation:none}}
 </style>
 </head>
 <body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Ja<button class="secret-p japan" type="button" aria-label="P de Japón">p</button>ón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">3,50</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button><form class="mystery-search" role="search"><input type="search" aria-label="Buscar" placeholder="Buscar" autocomplete="off"><button type="submit" aria-label="Buscar">⌕</button></form></footer>
@@ -28,7 +30,7 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 <div class="achievement" role="status" aria-live="polite" hidden><strong></strong><p></p></div>
 <script>
 const ACHIEVEMENTS_KEY = 'proyecto-japon-achievements-v1';
-const achievementNames = {cry:'hacerlos llorar',ball:'la pelota roja',throw:'lanzar las caras',dizzy:'marearlos',rainbow:'el modo multicolor',hammer:'el martillo',lolo:'la visita sorpresa',emoji:'los emojis',delos:'la visita de Delos',arian:'la visita de Arian',pushito:'la visita de Pushito'};
+const achievementNames = {cry:'hacerlos llorar',ball:'la pelota roja',throw:'lanzar las caras',dizzy:'marearlos',rainbow:'el modo multicolor',hammer:'el martillo',lolo:'la visita sorpresa',emoji:'los emojis',delos:'la visita de Delos',arian:'la visita de Arian',pushito:'la visita de Pushito',hundred:'el viaje al 100 %'};
 let achievements = {};
 try { const saved=JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY)); if(saved && typeof saved==='object' && !Array.isArray(saved)) achievements=saved; } catch (_) {}
 const achievementCard=document.querySelector('.achievement'), achievementQueue=[];
@@ -163,6 +165,22 @@ function moveBall(time) {
   if(ball.mode!=='rest')requestAnimationFrame(moveBall);
 }
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70,-80,78,-72,84][i],vy:[68,82,-78,-65,72,80,-70][i],initialized:false}));
+let celebrating=false;
+function celebrateHundred(){
+  if(celebrating)return;
+  celebrating=true;discover('hundred');
+  const startValue=value/100, started=performance.now(), display=document.getElementById('value');
+  document.body.classList.add('celebrate');
+  const overlay=document.createElement('div');overlay.className='celebration-overlay';overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');
+  for(let i=0;i<9;i++){const rocket=document.createElement('span');rocket.className='firework';rocket.textContent=i%2?'🎆':'🚀';rocket.style.left=(5+i*11)+'%';rocket.style.setProperty('--delay',(-i*.23)+'s');rocket.setAttribute('aria-hidden','true');overlay.appendChild(rocket)}
+  const message=document.createElement('div');message.className='celebration-message';message.hidden=true;overlay.appendChild(message);document.body.appendChild(overlay);
+  function countUp(now){const progress=Math.min(1,(now-started)/6000);display.textContent=String(Math.floor(startValue+(100-startValue)*progress));
+    if(progress<1){requestAnimationFrame(countUp);return}
+    display.textContent='100';message.hidden=false;message.textContent='¡Felicidades, ha llegado al 100%! Nos vemos en Japón 🇯🇵';
+    setTimeout(()=>{message.textContent='Era broma, sigo siendo pobre.';setTimeout(()=>{overlay.remove();document.body.classList.remove('celebrate');celebrating=false;showValue()},3000)},3000);
+  }
+  requestAnimationFrame(countUp);
+}
 const searchForm = document.querySelector('.mystery-search');
 const searchInput = searchForm.querySelector('input');
 // Nombres de emoji derivados de Unicode CLDR; licencia en UNICODE-LICENSE.txt.
@@ -212,7 +230,9 @@ function addEmoji(symbol){
 searchForm.addEventListener('submit', async e => {
   e.preventDefault();
   const query = searchInput.value.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  if(query === 'lolo') {
+  if(query === '100%') {
+    searchForm.classList.remove('error'); searchInput.value=''; searchInput.placeholder='Buscar'; celebrateHundred();
+  } else if(query === 'lolo') {
     faces[3].el.hidden=false;
     searchForm.classList.remove('error'); searchInput.value=''; searchInput.placeholder='Buscar';
     discover('lolo');
@@ -390,7 +410,7 @@ toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!op
 document.getElementById('chart-range').addEventListener('change',drawChart);
 window.addEventListener('resize',()=>{if(!panel.hidden)drawChart()});
 function showValue() {
-  document.getElementById('value').textContent = (value / 100).toFixed(2).replace('.', ',');
+  if(!celebrating) document.getElementById('value').textContent = (value / 100).toFixed(2).replace('.', ',');
   try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (_) {}
   recordValue();
 }
