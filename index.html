@@ -4,12 +4,12 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffffff"><title>Proyecto Japón</title>
 <style>
-:root{font-family:system-ui,-apple-system,sans-serif;color:#24211e;background:#fff}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:flex;flex-direction:column;align-items:center;text-align:center}header{padding:clamp(2.5rem,7vh,5rem) 1rem 0}h1{font-size:clamp(.85rem,2vw,1rem);letter-spacing:.25em;text-transform:uppercase;font-weight:600;margin:0}.sun{width:12px;height:12px;border-radius:50%;background:#bc3b3b;margin:0 auto 1.4rem}main{flex:1;display:grid;place-content:center;padding:1rem 1rem 10vh}.number{font-size:clamp(6rem,23vw,19rem);font-weight:300;line-height:1;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap}.unit{font-size:.34em;letter-spacing:0;margin-left:.1em;color:#bc3b3b}footer{padding:0 1rem 2.5rem;color:#77716a;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
+:root{font-family:system-ui,-apple-system,sans-serif;color:#24211e;background:#fff}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:flex;flex-direction:column;align-items:center;text-align:center}header{padding:clamp(2.5rem,7vh,5rem) 1rem 0}h1{font-size:clamp(.85rem,2vw,1rem);letter-spacing:.25em;text-transform:uppercase;font-weight:600;margin:0}.sun{width:12px;height:12px;border-radius:50%;background:#bc3b3b;margin:0 auto 1.4rem}main{flex:1;display:grid;place-content:center;padding:1rem 1rem 10vh}.number{font-size:clamp(4rem,18vw,16rem);font-weight:700;line-height:1;letter-spacing:-.075em;font-variant-numeric:tabular-nums;white-space:nowrap}.unit{font-size:.34em;letter-spacing:0;margin-left:.1em;color:#bc3b3b}footer{padding:0 1rem 2.5rem;color:#77716a;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
 
 body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-events:none}.face{position:fixed;left:0;top:0;width:clamp(70px, 11vw, 135px);height:clamp(70px, 11vw, 135px);z-index:3;will-change:transform;cursor:pointer;touch-action:manipulation;padding:0;border:0;background:transparent}.face img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 4px #0002)}.face.hit img{animation:squish .3s ease-out}.spark{position:fixed;width:18px;height:18px;border:2px solid #bc3b3b;border-radius:50%;pointer-events:none;z-index:3;animation:pop .45s ease-out forwards}@keyframes squish{0%{transform:scale(.72,1.18)}55%{transform:scale(1.13,.9)}100%{transform:scale(1)}}@keyframes pop{from{opacity:.8;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}@media(prefers-reduced-motion:reduce){.face.hit img,.spark{animation:none}}
 </style>
 </head>
-<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,0</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
+<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,00</span><span class="unit">%</span></div></main><footer>Un paso más cerca</footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button>
 <script>
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:i ? -75 : 85,vy:i ? 82 : 68,initialized:false}));
@@ -40,26 +40,25 @@ else faces.forEach((f,i)=>{f.el.style.transform=`translate(${i?75:10}vw,70vh)`})
 
 // Cambiar este valor cuando se reciba una nueva cifra en el chat.
 const BASE = 4;
-const KEY = 'proyecto-japon-v1-' + BASE;
-const minute = Math.floor(Date.now() / 60000);
-let state;
-try { state = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
-if (!state || !Number.isInteger(state.value) || state.value < BASE * 10 - 10 || state.value > BASE * 10 + 10 || state.minute > minute) state = {value: Math.round(BASE * 10), minute};
+const KEY = 'proyecto-japon-v2-' + BASE;
+const lower = Math.max(0, Math.round(BASE * 100) - 100);
+const upper = Math.min(10000, Math.round(BASE * 100) + 100);
+let value;
+try { value = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
+if (!Number.isInteger(value) || value < lower || value > upper) value = Math.round(BASE * 100);
+function showValue() {
+  document.getElementById('value').textContent = (value / 100).toFixed(2).replace('.', ',');
+  try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (_) {}
+}
 function step() {
   const r = Math.random();
   const magnitude = r < .90 ? 1 : r < .99 ? 2 : 3;
-  const direction = Math.random() < .5 ? -1 : 1;
-  const lower = Math.max(0, Math.round(BASE * 10) - 10), upper = Math.min(1000, Math.round(BASE * 10) + 10);
-  state.value = Math.max(lower, Math.min(upper, state.value + direction * magnitude));
+  let direction = Math.random() < .5 ? -1 : 1;
+  if (value + direction * magnitude < lower || value + direction * magnitude > upper) direction *= -1;
+  value = Math.max(lower, Math.min(upper, value + direction * magnitude));
+  showValue();
 }
-function update() {
-  const now = Math.floor(Date.now() / 60000);
-  // Al volver tras una ausencia, retomar desde el último valor sin saltos visibles.
-  if (now > state.minute) { step(); state.minute = now; }
-  document.getElementById('value').textContent = (state.value / 10).toFixed(1).replace('.', ',');
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {}
-  setTimeout(update, 60000 - Date.now() % 60000 + 20);
-}
-update();
+showValue();
+setInterval(step, 3000);
 </script></body></html>
 
