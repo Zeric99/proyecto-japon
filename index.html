@@ -32,14 +32,14 @@ function discover(id){
   achievements[id]=true;
   try { localStorage.setItem(ACHIEVEMENTS_KEY,JSON.stringify(achievements)); } catch (_) {}
   const found=Object.keys(achievementNames).filter(key=>achievements[key]).length;
-  achievementQueue.push({name:achievementNames[id],remaining:Object.keys(achievementNames).length-found});
+  achievementQueue.push({name:achievementNames[id],found,total:Object.keys(achievementNames).length});
   showAchievement();
 }
 function showAchievement(){
   if(achievementShowing || !achievementQueue.length)return;
   achievementShowing=true;const item=achievementQueue.shift();
   achievementCard.querySelector('strong').textContent='¡Has encontrado un easter egg!';
-  achievementCard.querySelector('p').textContent=item.name+' · '+(item.remaining ? 'Te faltan '+item.remaining+' más.' : '¡Ya los has encontrado todos!');
+  achievementCard.querySelector('p').textContent=item.name+' · Llevas '+item.found+' de '+item.total+'.';
   achievementCard.hidden=false;
   setTimeout(()=>{achievementCard.hidden=true;achievementShowing=false;showAchievement()},5000);
 }
