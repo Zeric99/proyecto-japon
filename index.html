@@ -11,7 +11,7 @@ body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-eve
 footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;background:#fff;color:#24211e;border:1px solid #d8d2cc;border-radius:999px;padding:.8rem 1.5rem;display:block;margin:1rem auto 0}.chart-toggle:focus-visible,select:focus-visible{outline:3px solid #bc3b3b;outline-offset:3px}.chart-panel[hidden]{display:none}.chart-panel{position:relative;z-index:4;width:min(90vw,700px);height:clamp(210px,32vh,320px);display:flex;flex-direction:column;text-align:left;background:rgba(255,255,255,.94);border-top:1px solid #eeeae6;padding-top:.7rem}.chart-header{display:flex;align-items:center;justify-content:space-between;gap:1rem}.chart-header h2{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;margin:0}.chart-subtitle{color:#77716a;font-size:.72rem;letter-spacing:normal;text-transform:none;margin:0}.chart-subtitle select{font:inherit;color:#24211e;background:transparent;border:0;cursor:pointer}.chart-wrap{position:relative;flex:1;min-height:120px}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-note{font-size:.65rem;line-height:1.3;color:#99918b;letter-spacing:normal;text-transform:none;margin:0 0 .3rem}.chart-open main{flex:1;padding:1rem;min-height:0}.chart-open .number{font-size:clamp(3.5rem,12vw,8rem)}.chart-open footer{padding:1rem 1rem 1.5rem}@media(max-width:600px){.chart-open .number{font-size:clamp(4rem,18vw,6rem)}.chart-panel{width:92vw;height:32vh}}
 </style>
 </head>
-<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Periodo: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial guardado en este navegador mientras la página está abierta.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
+<body><header><div class="sun" aria-hidden="true"></div><h1>Proyecto Japón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><span class="unit">%</span></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Todo el historial guardado en este navegador. Los periodos sin datos quedan vacíos.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button></footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button>
 <script>
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:[85,-75,70][i],vy:[68,82,-78][i],initialized:false}));
@@ -61,21 +61,15 @@ if (!Number.isInteger(value) || value < lower || value > upper) value = Math.rou
 // Velas reales de un minuto, compartidas entre los distintos valores base.
 const HISTORY_KEY = 'proyecto-japon-candles-v1';
 let candles = [];
-try { const saved = JSON.parse(localStorage.getItem(HISTORY_KEY)); if (Array.isArray(saved)) candles = saved.filter(c => Number.isFinite(c.t) && [c.o,c.h,c.l,c.c].every(Number.isFinite)).slice(-10080); } catch (_) {}
+try { const saved = JSON.parse(localStorage.getItem(HISTORY_KEY)); if (Array.isArray(saved)) candles = saved.filter(c => Number.isFinite(c.t) && [c.o,c.h,c.l,c.c].every(Number.isFinite)); } catch (_) {}
 const panel = document.getElementById('chart-panel');
 const toggle = document.querySelector('.chart-toggle');
-const TICKS_KEY = 'proyecto-japon-ticks-v1';
-let ticks = [];
-try { const saved = JSON.parse(localStorage.getItem(TICKS_KEY)); if(Array.isArray(saved)) ticks=saved.filter(c=>Number.isFinite(c.t)&&Number.isFinite(c.v)).slice(-18000); } catch (_) {}
+
 function recordValue() {
-  const now = Date.now();
-  ticks.push({t:now,v:value}); ticks=ticks.filter(c=>c.t>=now-86400000).slice(-18000);
-  try { localStorage.setItem(TICKS_KEY,JSON.stringify(ticks)); } catch (_) {}
-  const t = Math.floor(now / 60000) * 60000;
+  const t = Math.floor(Date.now() / 60000) * 60000;
   let candle = candles[candles.length - 1];
   if (!candle || candle.t !== t) { candle = {t, o:value, h:value, l:value, c:value}; candles.push(candle); }
   else { candle.h = Math.max(candle.h, value); candle.l = Math.min(candle.l, value); candle.c = value; }
-  candles = candles.slice(-10080);
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(candles)); } catch (_) {}
   if (!panel.hidden) drawChart();
 }
@@ -86,13 +80,14 @@ function drawChart() {
   canvas.width = Math.round(rect.width*dpr); canvas.height = Math.round(rect.height*dpr);
   const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
   const w=rect.width,h=rect.height,left=55,right=15,top=20,bottom=38,plotW=w-left-right,plotH=h-top-bottom;
-  const range = Number(document.getElementById('chart-range').value);
-  const bucket = range <= 15 ? (range === 1 ? 3000 : range === 5 ? 15000 : 30000) : range === 60 ? 60000 : 900000;
-  const slots = Math.ceil(range*60000/bucket), end = Math.floor(Date.now()/bucket)*bucket, start = end-(slots-1)*bucket;
+  const interval = Number(document.getElementById('chart-range').value);
+  const bucket = interval * 60000;
   const grouped = new Map();
-  const source = range <= 15 ? ticks.map(p=>({t:p.t,o:p.v,h:p.v,l:p.v,c:p.v})) : candles;
-  for (const c of source) { const t=Math.floor(c.t/bucket)*bucket; if(t<start || t>end) continue; const g=grouped.get(t); if(g){g.h=Math.max(g.h,c.h);g.l=Math.min(g.l,c.l);g.c=c.c}else grouped.set(t,{...c,t}); }
-  const visible=[...grouped.values()];
+  for (const c of candles) { const t=Math.floor(c.t/bucket)*bucket; const g=grouped.get(t); if(g){g.h=Math.max(g.h,c.h);g.l=Math.min(g.l,c.l);g.c=c.c}else grouped.set(t,{...c,t}); }
+  const visible=[...grouped.values()].sort((a,b)=>a.t-b.t);
+  if (!visible.length) return;
+  const start=visible[0].t, end=Math.max(visible[visible.length-1].t,Math.floor(Date.now()/bucket)*bucket);
+  const slots=Math.max(1,(end-start)/bucket+1);
   if (!visible.length) return;
   let min=Math.min(...visible.map(c=>c.l)),max=Math.max(...visible.map(c=>c.h));
   const pad=Math.max(3,(max-min)*.15); min-=pad;max+=pad;
@@ -101,7 +96,7 @@ function drawChart() {
   for(let i=0;i<=4;i++){let v=max-(max-min)*i/4,yy=y(v);ctx.strokeStyle='#eeeae6';ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(w-right,yy);ctx.stroke();ctx.fillStyle='#77716a';ctx.fillText((v/100).toFixed(2).replace('.',',')+' %',left-6,yy)}
   const slot=plotW/slots,bodyWidth=Math.max(2,Math.min(12,slot*.65));
   for(const c of visible){const x=left+((c.t-start)/bucket+.5)*slot; const color=c.c>=c.o?'#268567':'#c34747';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();const a=y(c.o),b=y(c.c);ctx.fillRect(x-bodyWidth/2,Math.min(a,b),bodyWidth,Math.max(1,Math.abs(a-b)))}
-  ctx.fillStyle='#77716a';ctx.textBaseline='top';ctx.textAlign='left';ctx.fillText(new Date(start).toLocaleString('es-ES',range<60?{hour:'2-digit',minute:'2-digit',second:'2-digit'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),left,h-bottom+10);ctx.textAlign='right';ctx.fillText(new Date(end).toLocaleString('es-ES',range<60?{hour:'2-digit',minute:'2-digit',second:'2-digit'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),w-right,h-bottom+10);
+  ctx.fillStyle='#77716a';ctx.textBaseline='top';ctx.textAlign='left';ctx.fillText(new Date(start).toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),left,h-bottom+10);ctx.textAlign='right';ctx.fillText(new Date(end).toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),w-right,h-bottom+10);
 }
 toggle.addEventListener('click',()=>{const opening=panel.hidden;panel.hidden=!opening;document.body.classList.toggle('chart-open',opening);toggle.setAttribute('aria-expanded',String(opening));toggle.textContent=opening?'Ocultar gráfica':'Gráfica';if(opening)drawChart()});
 document.getElementById('chart-range').addEventListener('change',drawChart);
