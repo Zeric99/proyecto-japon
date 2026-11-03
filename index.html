@@ -13,7 +13,17 @@ body{overflow:hidden} header,main,footer{position:relative;z-index:2;pointer-eve
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button>
 <script>
 const faces = [...document.querySelectorAll('.face')].map((el,i)=>({el,x:0,y:0,vx:i ? -75 : 85,vy:i ? 82 : 68,initialized:false}));
+// Precargar las expresiones para que aparezcan sin retrasos.
+const surprisedFaces = ['face-1-surprised.png', 'face-2-surprised.png'];
+faces.forEach((f, i) => {
+  f.image = f.el.querySelector('img'); f.normalSrc = f.image.getAttribute('src');
+  f.surprisedSrc = surprisedFaces[i];
+  const preload = new Image(); preload.src = f.surprisedSrc;
+});
 function bounceEffect(f) {
+  f.image.src = f.surprisedSrc;
+  clearTimeout(f.expressionTimer);
+  f.expressionTimer = setTimeout(() => { f.image.src = f.normalSrc; }, 800);
   f.el.classList.remove('hit'); void f.el.offsetWidth; f.el.classList.add('hit');
   const rect = f.el.getBoundingClientRect();
   const spark = document.createElement('span'); spark.className = 'spark';
