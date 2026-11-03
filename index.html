@@ -19,6 +19,8 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 .face[hidden]{display:none}.mystery-search{display:flex;align-items:center;width:min(180px,65vw);margin:.75rem auto 0;border:1px solid #e5dfd9;border-radius:999px;background:#fff;overflow:hidden}.mystery-search input{width:100%;min-width:0;border:0;outline:0;padding:.55rem .3rem .55rem .8rem;font:400 .75rem system-ui;color:#24211e;background:transparent}.mystery-search input::placeholder{color:#aaa39c}.mystery-search.error{border-color:#bc3b3b}.mystery-search.error input::placeholder{color:#bc3b3b}.mystery-search button{border:0;background:transparent;color:#77716a;font-size:1rem;cursor:pointer;padding:.35rem .7rem}.mystery-search:focus-within{outline:2px solid #d5bbb6;outline-offset:2px}.chart-open footer{padding-bottom:.5rem}
 
 .bouncing-emoji{position:fixed;left:0;top:0;z-index:3;pointer-events:none;user-select:none;font-size:clamp(2.5rem,9vw,4.5rem);line-height:1;will-change:transform}
+
+.face-accessory{position:absolute;left:50%;pointer-events:none;user-select:none;z-index:1;line-height:1;transform:translate(-50%,-50%);font-size:min(6vw,70px);white-space:nowrap}.accessory-hat{top:3%}.accessory-glasses{top:51%;font-size:min(5vw,56px)}.accessory-mustache{top:71%;width:36%;height:18%;display:grid;place-items:center}.accessory-mustache svg{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 1px #0005)}@media(max-width:600px){.face-accessory{font-size:min(17vw,85px)}.accessory-glasses{font-size:min(14vw,72px)}}
 </style>
 </head>
 <body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Ja<button class="secret-p japan" type="button" aria-label="P de Japón">p</button>ón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">4,40</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button><form class="mystery-search" role="search"><input type="search" aria-label="Buscar" placeholder="Buscar" autocomplete="off"><button type="submit" aria-label="Buscar">⌕</button></form></footer>
@@ -176,6 +178,30 @@ function findEmoji(query,catalog){
   }
   return null;
 }
+// Los accesorios se colocan sobre todas las caras, también las que aún estén ocultas.
+function accessoryFor(query, symbol){
+  const names = {
+    sombrero:['hat','🎩'],sombreros:['hat','🎩'],gorra:['hat','🧢'],gorras:['hat','🧢'],
+    casco:['hat','⛑️'],corona:['hat','👑'],birrete:['hat','🎓'],
+    'sombrero de vaquero':['hat','🤠'], 'sombrero vaquero':['hat','🤠'],
+    gafas:['glasses','👓'],lentes:['glasses','👓'],anteojos:['glasses','👓'],
+    'gafas de sol':['glasses','🕶️'],'lentes de sol':['glasses','🕶️'],
+    'gafas de buceo':['glasses','🥽'],bigote:['mustache',''],bigotes:['mustache',''],mostacho:['mustache','']
+  };
+  if(names[query]) return names[query];
+  const plain=(symbol||'').replace(/\uFE0F/g,'');
+  if(['🎩','🧢','👒','🎓','⛑','🪖','👑'].includes(plain)) return ['hat',symbol];
+  if(['👓','🕶','🥽'].includes(plain)) return ['glasses',symbol];
+  return null;
+}
+function applyAccessory(type,symbol){
+  for(const face of document.querySelectorAll('.face')){
+    let item=face.querySelector('.accessory-'+type);
+    if(!item){item=document.createElement('span');item.className='face-accessory accessory-'+type;item.setAttribute('aria-hidden','true');face.appendChild(item)}
+    if(type==='mustache') item.innerHTML='<svg viewBox="0 0 100 40" aria-hidden="true"><path fill="#241913" d="M50 17C42 3 29 1 22 13 17 21 10 23 2 17c3 18 24 23 37 12 5-4 8-5 11-3 3-2 6-1 11 3 13 11 34 6 37-12-8 6-15 4-20-4C71 1 58 3 50 17Z"/></svg>';
+    else item.textContent=symbol;
+  }
+}
 const emojiSprites=[];
 function addEmoji(symbol){
   const el=document.createElement('span');el.className='bouncing-emoji';el.textContent=symbol;el.setAttribute('aria-hidden','true');document.body.appendChild(el);
@@ -193,7 +219,10 @@ searchForm.addEventListener('submit', async e => {
   } else {
     const catalog=await emojiCatalog;
     const emoji=query && findEmoji(query,catalog);
-    if(emoji) { addEmoji(emoji); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
+    const accessory=query && accessoryFor(query,emoji);
+    if(accessory) { applyAccessory(accessory[0],accessory[1]); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
+    else if(emoji) { addEmoji(emoji); discover('emoji'); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
+    else if(['quitar accesorios','quitar todo'].includes(query)) { document.querySelectorAll('.face-accessory').forEach(item=>item.remove()); searchInput.value=''; searchInput.placeholder='Buscar'; searchForm.classList.remove('error'); }
     else { searchInput.value=''; searchInput.placeholder='Error'; searchForm.classList.add('error'); }
   }
 });
