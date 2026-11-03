@@ -25,7 +25,7 @@ footer{pointer-events:auto;z-index:5}.chart-toggle{font:inherit;letter-spacing:.
 .celebrate header,.celebrate main,.celebrate footer{animation:celebrate-shake .17s linear infinite}.celebration-overlay{position:fixed;inset:0;z-index:90;pointer-events:none;display:grid;place-items:center;overflow:hidden}.celebration-message{position:relative;z-index:2;max-width:min(90vw,580px);padding:1rem 1.5rem;text-align:center;color:#24211e;background:#fffffff0;border-radius:20px;box-shadow:0 8px 35px #0002;font-size:clamp(1.5rem,5vw,3rem);font-weight:800;line-height:1.2}.firework{position:absolute;bottom:-70px;font-size:clamp(2rem,6vw,4rem);animation:launch-firework 2s ease-out infinite;animation-delay:var(--delay)}@keyframes celebrate-shake{0%,100%{translate:0 0}25%{translate:2px -2px}75%{translate:-2px 2px}}@keyframes launch-firework{0%{transform:translateY(0) scale(.5);opacity:0}15%{opacity:1}75%{opacity:1}100%{transform:translateY(-85vh) scale(1.5) rotate(25deg);opacity:0}}@media(prefers-reduced-motion:reduce){.celebrate header,.celebrate main,.celebrate footer,.firework{animation:none}}
 </style>
 </head>
-<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Ja<button class="secret-p japan" type="button" aria-label="P de Japón">p</button>ón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">3,50</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Historial de este navegador; los periodos sin datos se omiten.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button><form class="mystery-search" role="search"><input type="search" aria-label="Buscar" placeholder="Buscar" autocomplete="off"><button type="submit" aria-label="Buscar">⌕</button></form></footer>
+<body><header><button class="sun" type="button" aria-label="Punto rojo"></button><h1><button class="secret-p" type="button" aria-label="P de Proyecto">P</button>royecto Ja<button class="secret-p japan" type="button" aria-label="P de Japón">p</button>ón</h1></header><main><div class="number" aria-label="Porcentaje actual"><span id="value">3,50</span><button class="unit" type="button" aria-label="Cambiar color del porcentaje">%</button></div></main><section class="chart-panel" id="chart-panel" hidden aria-label="Gráfica de evolución"><div class="chart-header"><h2>Evolución</h2><p class="chart-subtitle"><label for="chart-range">Velas: </label><select id="chart-range"><option value="1">1 minuto</option><option value="5">5 minutos</option><option value="15">15 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select></p></div><div class="chart-wrap"><canvas id="chart" role="img" aria-label="Gráfica de velas del porcentaje registrado"></canvas></div><p class="chart-note">Los cambios comunicados son puntos de referencia; la fluctuación entre ellos es simulada.</p></section><footer>Un paso más cerca<button class="chart-toggle" type="button" aria-expanded="false" aria-controls="chart-panel">Gráfica</button><form class="mystery-search" role="search"><input type="search" aria-label="Buscar" placeholder="Buscar" autocomplete="off"><button type="submit" aria-label="Buscar">⌕</button></form></footer>
 <button class="face" aria-label="Rebotar primera cara"><img src="face-1.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar segunda cara"><img src="face-2.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar tercera cara"><img src="face-3.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar cuarta cara" hidden><img src="face-4.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar quinta cara" hidden><img src="face-5.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar sexta cara" hidden><img src="face-6.png" alt="" draggable="false"></button><button class="face" aria-label="Rebotar séptima cara" hidden><img src="face-7.png" alt="" draggable="false"></button>
 <div class="achievement" role="status" aria-live="polite" hidden><strong></strong><p></p></div>
 <script>
@@ -358,29 +358,43 @@ function animate(time) {
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(animate);
 else faces.forEach((f,i)=>{f.el.style.transform=`translate(${[10,70,40,45,60,20,75][i]}vw,${[70,70,15,45,30,25,50][i]}vh)`});
 
-// Cambiar este valor cuando se reciba una nueva cifra en el chat.
-const BASE = 3.5;
-const KEY = 'proyecto-japon-v2-' + BASE;
-const lower = Math.max(0, Math.round(BASE * 100) - 100);
-const upper = Math.min(10000, Math.round(BASE * 100) + 100);
-let value;
-try { value = JSON.parse(localStorage.getItem(KEY)); } catch (_) {}
-if (!Number.isInteger(value) || value < lower || value > upper) value = Math.round(BASE * 100);
-// Velas reales de un minuto, compartidas entre los distintos valores base.
-const HISTORY_KEY = 'proyecto-japon-candles-v1';
-let candles = [];
-try { const saved = JSON.parse(localStorage.getItem(HISTORY_KEY)); if (Array.isArray(saved)) candles = saved.filter(c => Number.isFinite(c.t) && [c.o,c.h,c.l,c.c].every(Number.isFinite)); } catch (_) {}
-const panel = document.getElementById('chart-panel');
-const toggle = document.querySelector('.chart-toggle');
-
-function recordValue() {
-  const t = Math.floor(Date.now() / 60000) * 60000;
-  let candle = candles[candles.length - 1];
-  if (!candle || candle.t !== t) { candle = {t, o:value, h:value, l:value, c:value}; candles.push(candle); }
-  else { candle.h = Math.max(candle.h, value); candle.l = Math.min(candle.l, value); candle.c = value; }
-  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(candles)); } catch (_) {}
-  if (!panel.hidden) drawChart();
+// Añadir un punto a BASE_EVENTS cada vez que se actualice el porcentaje solicitado.
+// La fluctuación entre puntos es una simulación determinista, no datos históricos reales.
+const BASE_EVENTS = [
+  {t: Date.parse('2026-11-03T01:11:16Z'), v:400},
+  {t: Date.parse('2026-11-03T01:28:59Z'), v:240},
+  {t: Date.parse('2026-11-03T01:31:03Z'), v:440},
+  {t: Date.parse('2026-11-03T14:26:24Z'), v:350}
+];
+const SIMULATION_START = BASE_EVENTS[0].t;
+const TICK_MS=3000, SEGMENT_TICKS=100;
+function hashUnit(n){let x=(n|0)^0x5f3759df;x=Math.imul(x^(x>>>16),0x45d9f3b);x=Math.imul(x^(x>>>16),0x45d9f3b);return ((x^(x>>>16))>>>0)/4294967295}
+function simulatedValue(t){
+  let index=0;for(let i=1;i<BASE_EVENTS.length;i++){if(BASE_EVENTS[i].t>t)break;index=i}
+  const event=BASE_EVENTS[index],tick=Math.max(0,Math.floor((t-event.t)/TICK_MS));
+  const segment=Math.floor(tick/SEGMENT_TICKS),fraction=(tick%SEGMENT_TICKS)/SEGMENT_TICKS;
+  const anchor=n=>n===0?0:Math.round((hashUnit(n+index*100003)*2-1)*65);
+  return Math.max(0,Math.min(10000,Math.round(event.v+anchor(segment)+(anchor(segment+1)-anchor(segment))*fraction)));
 }
+let value=simulatedValue(Date.now());
+const panel=document.getElementById('chart-panel');
+const toggle=document.querySelector('.chart-toggle');
+let candles=[],lastTick=-1;
+function appendSample(t,v){
+  const minute=Math.floor(t/60000)*60000;let c=candles[candles.length-1];
+  if(!c || c.t!==minute){c={t:minute,o:v,h:v,l:v,c:v};candles.push(c)}
+  else{c.h=Math.max(c.h,v);c.l=Math.min(c.l,v);c.c=v}
+}
+function syncCandles(now){
+  const currentTick=Math.max(0,Math.floor((now-SIMULATION_START)/TICK_MS));
+  if(lastTick<0 || currentTick<lastTick){candles=[];lastTick=-1}
+  while(lastTick<currentTick){
+    lastTick++;const t=SIMULATION_START+lastTick*TICK_MS;
+    for(const event of BASE_EVENTS){if(event.t>t-TICK_MS && event.t<=t)appendSample(event.t,event.v)}
+    appendSample(t,simulatedValue(t));
+  }
+}
+function recordValue(){syncCandles(Date.now());if(!panel.hidden)drawChart()}
 function drawChart() {
   const canvas = document.getElementById('chart'), rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
@@ -396,7 +410,7 @@ function drawChart() {
   if (!visible.length) return;
   const start=visible[0].t, end=visible[visible.length-1].t;
   if (!visible.length) return;
-  let min=Math.min(...visible.map(c=>c.l)),max=Math.max(...visible.map(c=>c.h));
+  let min=Infinity,max=-Infinity;for(const c of visible){min=Math.min(min,c.l);max=Math.max(max,c.h)}
   const pad=Math.max(3,(max-min)*.15); min-=pad;max+=pad;
   const y=v=>top+(max-v)/(max-min)*plotH;
   ctx.font='11px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';
@@ -411,17 +425,9 @@ document.getElementById('chart-range').addEventListener('change',drawChart);
 window.addEventListener('resize',()=>{if(!panel.hidden)drawChart()});
 function showValue() {
   if(!celebrating) document.getElementById('value').textContent = (value / 100).toFixed(2).replace('.', ',');
-  try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (_) {}
   recordValue();
 }
-function step() {
-  const r = Math.random();
-  const magnitude = r < .90 ? 1 : r < .99 ? 2 : 3;
-  let direction = Math.random() < .5 ? -1 : 1;
-  if (value + direction * magnitude < lower || value + direction * magnitude > upper) direction *= -1;
-  value = Math.max(lower, Math.min(upper, value + direction * magnitude));
-  showValue();
-}
+function step() {value=simulatedValue(Date.now());showValue()}
 showValue();
 setInterval(step, 3000);
 </script></body></html>
